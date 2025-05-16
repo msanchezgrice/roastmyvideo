@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app # Mounts the current directory into /app in the container
+      - /app/node_modules # Excludes node_modules from being overwritten by the volume mount
+      - /app/.next # Excludes .next from being overwritten
+    env_file:
+      - .env.local # Load environment variables from .env.local
+    environment:
+      NODE_ENV: development
+    # If you also want to run a Redis service via Docker Compose (for local dev without Upstash):
+  # redis:
+  #   image: redis:alpine
+  #   ports:
+  #     - "6379:6379"
+
+# Note: For the BullMQ queue to connect to your Upstash Redis,
+# the `REDIS_URL` (or other REDIS_ variables) must be available
+# to the `app` service environment when it runs.
+# Using a .env.local file that Next.js reads is often the simplest way. 

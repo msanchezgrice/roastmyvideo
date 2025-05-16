@@ -1,21 +1,16 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-    import { cookies } from 'next/headers';
-    import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+    import { createClient } from "@/utils/supabase/server";
 
-    export const dynamic = 'force-dynamic';
+    export const dynamic = "force-dynamic";
 
     export async function POST(request: Request) {
       const requestUrl = new URL(request.url);
-      const cookieStore = cookies();
-      const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+      const supabase = createClient();
 
-      // Check if we have a session
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const { error } = await supabase.auth.signOut();
 
-      if (session) {
-        await supabase.auth.signOut();
+      if (error) {
+        console.error("[Auth SignOut] Error signing out:", error);
       }
 
       return NextResponse.redirect(`${requestUrl.origin}/`, {

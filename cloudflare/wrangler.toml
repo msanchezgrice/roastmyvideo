@@ -4,7 +4,7 @@ compatibility_date = "2024-05-08"
 
 # Enable FFmpeg
 [build]
-command = ""
+command = "npm install @ffmpeg/ffmpeg @ffmpeg/util"
 [build.upload]
 format = "modules"
 
@@ -21,12 +21,14 @@ R2_BUCKET = "doodad-videos"
 binding = "R2"
 bucket_name = "doodad-videos"
 
+# Secret environment variables (set these in the Cloudflare dashboard)
+# - R2_ENDPOINT_URL
+# - R2_ACCESS_KEY_ID
+# - R2_SECRET_ACCESS_KEY
+
 # Configure environment variables and bindings
 [vars]
 SUPABASE_URL = ""  # Set in Cloudflare dashboard
 SUPABASE_SERVICE_KEY = ""  # Set in Cloudflare dashboard
 OPENAI_API_KEY = ""  # Set in Cloudflare dashboard
-R2_ENDPOINT_URL = ""  # Set in Cloudflare dashboard
-R2_ACCESS_KEY_ID = ""  # Set in Cloudflare dashboard
-R2_SECRET_ACCESS_KEY = ""  # Set in Cloudflare dashboard
 API_SECRET = ""  # Secret for triggering manual processing 

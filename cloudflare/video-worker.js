@@ -1,4 +1,3 @@
-import { createFFmpeg, fetchFile } from "./ffmpeg-helper.js";
 /**
  * Doodad.AI Video Processing Worker
  * 
@@ -7,6 +6,9 @@ import { createFFmpeg, fetchFile } from "./ffmpeg-helper.js";
  * - Generating video clips
  * - Creating and storing merged content
  */
+
+// Import FFmpeg libraries (needs npm install @ffmpeg/ffmpeg @ffmpeg/util)
+import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 
 export default {
   async fetch(request, env, ctx) {

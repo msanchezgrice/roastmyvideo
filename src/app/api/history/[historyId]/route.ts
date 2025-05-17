@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/serviceRoleClient';
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 interface RouteParams {
   params: {
@@ -7,7 +8,17 @@ interface RouteParams {
   };
 }
 
-// DELETE a specific video history entry and its associated thumbnail
+// Initialize S3 client for Cloudflare R2
+const s3Client = new S3Client({
+  region: "auto", // For R2, "auto" is typically used
+  endpoint: process.env.R2_ENDPOINT,
+  credentials: {
+    accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+  },
+});
+
+// DELETE a specific video history entry and its associated files
 export async function DELETE(request: Request, { params }: RouteParams) {
   if (!supabaseAdmin) {
     return NextResponse.json({ error: 'Supabase admin client not configured.' }, { status: 500 });
@@ -20,10 +31,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   console.log(`[API /api/history/${historyId}] Received DELETE request.`);
 
   try {
-    // 1. Fetch the history entry to get the thumbnail_url
+    // 1. Fetch the history entry to get the thumbnail_url and video_r2_url
     const { data: historyEntry, error: fetchError } = await supabaseAdmin
       .from('video_history')
-      .select('thumbnail_url')
+      .select('thumbnail_url, video_r2_url')
       .eq('id', historyId)
       .single();
 
@@ -67,7 +78,29 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       }
     }
 
-    // 3. Delete the video_history record from the database
+    // 3. If video_r2_url exists, delete the video file from R2
+    if (historyEntry.video_r2_url && process.env.R2_BUCKET_NAME) {
+      try {
+        // Extract the key from the R2 URL
+        const url = new URL(historyEntry.video_r2_url);
+        const key = url.pathname.substring(1); // Remove leading slash
+        
+        console.log(`[API /api/history/${historyId}] Attempting to delete video file: ${key} from R2 bucket.`);
+        
+        const deleteCommand = new DeleteObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: key,
+        });
+        
+        await s3Client.send(deleteCommand);
+        console.log(`[API /api/history/${historyId}] Successfully deleted video file from R2 storage.`);
+      } catch (r2Error) {
+        console.error(`[API /api/history/${historyId}] Error deleting video file from R2:`, r2Error);
+        // Non-fatal error, continue with database deletion
+      }
+    }
+
+    // 4. Delete the video_history record from the database
     console.log(`[API /api/history/${historyId}] Attempting to delete history record from database.`);
     const { error: deleteDbError, count } = await supabaseAdmin
       .from('video_history')
@@ -85,8 +118,8 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: 'Not Found', details: `History entry with ID ${historyId} was not found for deletion.` }, { status: 404 });
     }
 
-    console.log(`[API /api/history/${historyId}] Successfully deleted history entry and associated thumbnail (if any).`);
-    return NextResponse.json({ message: `History entry ${historyId} and associated thumbnail deleted successfully.` }, { status: 200 });
+    console.log(`[API /api/history/${historyId}] Successfully deleted history entry and associated files.`);
+    return NextResponse.json({ message: `History entry ${historyId} and associated files deleted successfully.` }, { status: 200 });
 
   } catch (error) {
     console.error(`[API /api/history/${historyId}] General error in DELETE handler:`, error);

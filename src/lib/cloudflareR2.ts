@@ -29,14 +29,14 @@ const s3Client = new S3Client({
  * @param localFilePath The path to the local file to upload.
  * @param fileNameInBucket The desired file name (key) in the R2 bucket.
  * @param contentType The MIME type of the file (e.g., 'video/mp4').
- * @param expiresInSeconds The duration for which the pre-signed URL will be valid (default 24 hours).
+ * @param expiresInSeconds The duration for which the pre-signed URL will be valid (default 7 days).
  * @returns A promise that resolves to the pre-signed URL, or null if R2 is not configured or upload fails.
  */
 export async function uploadToR2AndGetSignedUrl(
   localFilePath: string,
   fileNameInBucket: string,
   contentType: string,
-  expiresInSeconds: number = 24 * 60 * 60 // 24 hours
+  expiresInSeconds: number = 7 * 24 * 60 * 60 // 7 days
 ): Promise<string | null> {
   if (!R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME) {
     console.log("[cloudflareR2] Skipping R2 upload as not configured.");

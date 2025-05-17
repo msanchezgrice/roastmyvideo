@@ -35,11 +35,11 @@ export default async function RootLayout({
                 </Link>
               </div>
               <div className="flex items-center space-x-4">
-                <Link href="/history" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                  History
+                <Link href="/feed" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                  My Feed
                 </Link>
-                <Link href="/personas" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                  Personas
+                <Link href="/characters" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                  Characters
                 </Link>
                 {user ? (
                   <form action="/auth/signout" method="post">

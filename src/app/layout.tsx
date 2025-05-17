@@ -38,7 +38,7 @@ export default async function RootLayout({
                 <Link href="/feed" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
                   My Feed
                 </Link>
-                <Link href="/characters" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                <Link href="/personas" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                   Characters
                 </Link>
                 {user ? (

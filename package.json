@@ -1,0 +1,12 @@
+{
+	"name": "doodad-ai",
+	"dependencies": {
+		"@supabase/auth-helpers-nextjs": "^0.10.0",
+		"@supabase/ssr": "^0.6.1",
+		"@supabase/supabase-js": "^2.49.4",
+		"yt-dlp-wrap": "2.3.12"
+	},
+	"scripts": {
+		"dev:worker": "dotenv -e .env.local -- tsx src/workers/videoWorker.ts"
+	}
+}

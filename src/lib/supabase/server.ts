@@ -1,4 +1,4 @@
-// queer-ai/src/lib/supabase/server.ts
+// doodad-ai/src/lib/supabase/server.ts
 import { type CookieOptions, createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from '@/types_db'; // Ensure this path is correct and types_db.ts exists

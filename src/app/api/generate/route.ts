@@ -1,4 +1,4 @@
-// queer-ai/src/app/api/generate/route.ts
+// doodad-ai/src/app/api/generate/route.ts
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import { Persona, VideoJobData } from '@/types';

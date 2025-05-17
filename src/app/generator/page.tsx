@@ -347,7 +347,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center p-8 space-y-6 bg-gray-900 text-white">
       <div className="w-full max-w-4xl flex justify-between items-center mb-4">
-        <h1 className="text-4xl font-bold tracking-tight text-center text-indigo-400">Queer-AI Commentary Generator</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-center text-indigo-400">Doodad.AI Commentary Generator</h1>
         <div className="flex space-x-2">
           <Link href="/history" className="px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg shadow-md hover:bg-gray-500 transition-colors duration-150 text-sm">
             View History

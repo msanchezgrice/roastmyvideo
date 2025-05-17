@@ -1,4 +1,4 @@
-// queer-ai/src/types.ts
+// doodad-ai/src/types.ts
 
 export interface DialogueLine {
   speaker: string;

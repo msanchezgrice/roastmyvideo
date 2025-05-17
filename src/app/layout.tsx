@@ -7,7 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Queer-AI Commentary Generator",
+  title: "Doodad.AI Commentary Generator",
   description: "Generate unique AI-powered commentary for your videos!",
 };
 
@@ -31,7 +31,7 @@ export default async function RootLayout({
             <div className="flex items-center justify-between h-16">
               <div className="flex items-center">
                 <Link href="/" className="text-xl font-bold text-indigo-400">
-                  Queer-AI Generator
+                  Doodad.AI Generator
                 </Link>
               </div>
               <div className="flex items-center space-x-4">

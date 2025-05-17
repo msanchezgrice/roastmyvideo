@@ -277,12 +277,11 @@ export default function Home() {
     console.log('[page.tsx] handleGenerate START');
     setIsLoading(true); 
     setError(null); 
-    setDialogue([]); 
+    setDialogue([]);
     setAudioUrl(null);
     setFinalVideoR2Url(null); 
     setGeneratedSummaryInfo(null);
-    // setShareLinkCopied(false); // Reset if you want the share button to revert on new generation
-
+    
     const activePersonas: Persona[] = [];
     for (let i = 0; i < numberOfSpeakers; i++) {
       const name = personaNames[i] || `Speaker ${i + 1}`;
@@ -300,50 +299,89 @@ export default function Home() {
     }
 
     try {
-      console.log('[page.tsx] Making API call to /api/generate to submit job...');
-      const response = await fetch('/api/generate', {
+      // First try the direct generation API
+      console.log('[page.tsx] Making API call to /api/direct-generate for immediate processing...');
+      const response = await fetch('/api/direct-generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          transcriptSummary: transcript, 
           videoUrlInput: videoUrlInput,
           personas: activePersonas, 
           speakingPace: speakingPace, 
           userGuidance: userGuidanceInput
         }),
       });
-      console.log('[page.tsx] API call responded. Status:', response.status);
-
-      const result: JobSubmissionResponse = await response.json(); // Always try to parse JSON
-
+      
+      console.log('[page.tsx] DirectGenerate API response. Status:', response.status);
+      const result = await response.json();
+      
       if (!response.ok) {
-        console.error('[page.tsx] API Error Response Data:', result);
-        throw new Error(result.details || result.error || `Job submission failed: ${response.statusText}`);
+        console.error('[page.tsx] DirectGenerate API Error Response Data:', result);
+        
+        // If direct-generate fails, fall back to the queued approach
+        console.log('[page.tsx] Falling back to queued approach via /api/generate...');
+        const queueResponse = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            transcriptSummary: transcript, 
+            videoUrlInput: videoUrlInput,
+            personas: activePersonas, 
+            speakingPace: speakingPace, 
+            userGuidance: userGuidanceInput
+          }),
+        });
+        
+        const queueResult = await queueResponse.json();
+        
+        if (!queueResponse.ok) {
+          throw new Error(queueResult.details || queueResult.error || `Job submission failed: ${queueResponse.statusText}`);
+        }
+        
+        console.log('[page.tsx] Job submission successful:', queueResult);
+        setGeneratedSummaryInfo(`Video generation started! Job ID: ${queueResult.jobId}. Check history later for results.`);
+      } else {
+        // Direct generation was successful
+        console.log('[page.tsx] DirectGenerate successful:', result);
+        setGeneratedSummaryInfo(`Generated dialogue script via direct processing. Operation ID: ${result.operation_id}`);
+        
+        // Display the dialogue
+        if (result.dialogue_text) {
+          setDialogue(parseDialogueResponse(result.dialogue_text));
+        }
       }
-
-      console.log('[page.tsx] Job submission successful:', result);
-      // Display a message to the user that the job has been submitted.
-      // We don't get the final video URL here anymore.
-      setGeneratedSummaryInfo(`Video generation started! Job ID: ${result.jobId}. Check history later for results.`);
-      // Clear previous direct results as the processing is now async
-      setDialogue([]);
-      setAudioUrl(null);
-      setFinalVideoR2Url(null);
-
     } catch (err) {
-      console.error('[page.tsx] Error in handleGenerate (Job Submission):', err);
+      console.error('[page.tsx] Error in handleGenerate:', err);
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unknown error occurred during job submission.');
+        setError('An unknown error occurred during processing.');
       }
     } finally {
       console.log('[page.tsx] handleGenerate FINALLY block. Setting isLoading to false.');
-      setIsLoading(false); // Still set loading to false after job submission attempt
+      setIsLoading(false);
     }
     console.log('[page.tsx] handleGenerate END');
   };
   
+  // Function to parse dialogue response (simplified version)
+  const parseDialogueResponse = (text: string): DialogueLine[] => {
+    const lines: DialogueLine[] = [];
+    const lineRegex = /(.+?):\s*(.+)/g;
+    let match;
+    
+    while ((match = lineRegex.exec(text)) !== null) {
+      if (match.length >= 3) {
+        lines.push({
+          speaker: match[1].trim(),
+          text: match[2].trim()
+        });
+      }
+    }
+    
+    return lines;
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center p-8 space-y-6 bg-gray-900 text-white">
       <div className="w-full max-w-4xl flex justify-between items-center mb-4">

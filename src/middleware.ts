@@ -19,9 +19,10 @@ export const config = {
      * - /generator (public generator access)
      * - /public-personas (public personas page)
      * - /api/generate (public generation API)
+     * - /api/direct-generate (direct generation API without DB/queue)
      * Modify this pattern to protect specific routes or make others public.
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/|api/auth/callback|generator|public-personas|api/generate).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth/|api/auth/callback|generator|public-personas|api/generate|api/direct-generate).*)',
     // Ensure /api/auth/callback is excluded if it was not implicitly by 'auth/'
   ],
 }; 

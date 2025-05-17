@@ -35,16 +35,21 @@ export default async function RootLayout({
                 </Link>
               </div>
               <div className="flex items-center space-x-4">
-                <Link href="/feed" className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">
+                <Link href="/feed" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                   My Feed
                 </Link>
-                <Link href="/personas" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
-                  Characters
+                <Link href="/public-personas" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                  Public Characters
                 </Link>
                 {user ? (
-                  <form action="/auth/signout" method="post">
-                    <button type="submit" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Sign Out</button>
-                  </form>
+                  <>
+                    <Link href="/personas" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                      My Characters
+                    </Link>
+                    <form action="/auth/signout" method="post">
+                      <button type="submit" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Sign Out</button>
+                    </form>
+                  </>
                 ) : (
                   <Link href="/auth/signin" className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
                     Sign In

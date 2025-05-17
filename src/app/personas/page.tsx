@@ -16,6 +16,7 @@ interface CustomPersona {
   voice_preference: TTSVoiceType | null;
   backstory: string | null;
   tags: string[] | null;
+  is_public?: boolean;
 }
 
 // Add SortOption type
@@ -34,6 +35,7 @@ const DEFAULT_FORM_STATE: Omit<CustomPersona, 'id' | 'created_at'> = {
   voice_preference: null,
   backstory: '',
   tags: [],
+  is_public: false,
 };
 
 export default function PersonaManagerPage() {
@@ -155,6 +157,7 @@ export default function PersonaManagerPage() {
       voice_preference: persona.voice_preference || null,
       backstory: persona.backstory || '',
       tags: persona.tags || [],
+      is_public: persona.is_public || false,
     });
     setCurrentTags((persona.tags || []).join(', ')); // Set the raw string for the input field
     setShowForm(true);
@@ -295,6 +298,24 @@ export default function PersonaManagerPage() {
                 Play Voice
               </button>
             </div>
+            <div className="mt-2">
+              <div className="flex items-center">
+                <input 
+                  type="checkbox" 
+                  id="is_public" 
+                  name="is_public" 
+                  checked={!!formData.is_public} 
+                  onChange={(e) => setFormData(prev => ({ ...prev, is_public: e.target.checked }))}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-600 rounded"
+                />
+                <label htmlFor="is_public" className="ml-2 block text-sm text-gray-300">
+                  Make this character public (available to all users)
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Public characters can be used by any Doodad.AI user, even when you're not logged in.
+              </p>
+            </div>
             {formError && <p className="text-sm text-red-400">Error: {formError}</p>}
             <div className="flex gap-4">
               <button type="submit" className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600">{isEditing ? 'Save Changes' : 'Create Persona'}</button>
@@ -314,7 +335,14 @@ export default function PersonaManagerPage() {
             {displayedPersonas.map(p => (
               <div key={p.id} className="p-4 bg-gray-800 rounded-lg shadow-lg flex flex-col justify-between h-full">
                 <div>
-                  <h3 className="text-lg font-semibold text-indigo-300 mb-1 break-words">{p.name}</h3>
+                  <div className="flex justify-between items-start mb-1">
+                    <h3 className="text-lg font-semibold text-indigo-300 break-words">{p.name}</h3>
+                    {p.is_public && (
+                      <span className="px-2 py-0.5 text-xs bg-green-700 text-green-100 rounded-full">
+                        Public
+                      </span>
+                    )}
+                  </div>
                   {p.style && (
                     <p className="text-sm text-gray-400 mt-1 italic mb-2 text-ellipsis overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }} title={p.style}>
                       <span className="font-semibold text-gray-300">Style:</span> {p.style}

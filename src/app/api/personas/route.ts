@@ -1,39 +1,68 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server'; // Path to our new server client
-// import { supabaseAdmin } from '@/lib/supabase/serviceRoleClient'; // Keep for now, might remove later if not needed
+import { supabaseAdmin } from '@/lib/supabase/serviceRoleClient'; // Used for public personas access
 import type { Persona } from '@/types'; // Assuming this path is correct
 
-// GET all custom personas FOR THE AUTHENTICATED USER
+// GET all personas - works both with and without authentication
 export async function GET(request: Request) {
   console.log('[API /api/personas] GET handler invoked.');
+  const { searchParams } = new URL(request.url);
+  const publicOnly = searchParams.get('public') === 'true';
   const supabase = createClient();
   
   try {
-    console.log('[API /api/personas] Attempting to get user...');
+    // First try to get user session
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    console.log('[API /api/personas] getUser result:', { userIsEmpty: !user, userError });
+    console.log('[API /api/personas] getUser result:', { userIsEmpty: !user, userError, publicOnly });
 
-    if (userError || !user) {
-      console.warn('[API /api/personas] No authenticated user found or error. Status: 401');
-      // It's common to return a 401 if no user, or let RLS handle it with an empty array for non-authed users.
-      // For now, returning 401 if explicitly no user to make it clear.
+    // For public personas, we don't need authentication
+    if ((userError || !user) && !publicOnly) {
+      console.warn('[API /api/personas] No authenticated user found or error, but this is not a public request. Status: 401');
       return NextResponse.json({ error: 'Unauthorized', details: userError?.message || 'No user session' }, { status: 401 });
     }
 
-    console.log(`[API /api/personas] User ${user.id} found. Fetching personas...`);
-    const { data, error: dbError } = await supabase
-      .from('custom_personas')
-      .select('*')
-      // .eq('user_id', user.id) // RLS should handle this, but can be added for explicit filtering
-      .order('name', { ascending: true });
+         // If this is a public request or we have a user, proceed
+     if (publicOnly) {
+       console.log('[API /api/personas] Public personas requested, using admin client');
+       
+       // Use supabaseAdmin to bypass RLS and get public personas
+       if (!supabaseAdmin) {
+         return NextResponse.json({ error: 'Server Error', details: 'Admin client not configured' }, { status: 500 });
+       }
+       
+       const { data, error: dbError } = await supabaseAdmin
+         .from('custom_personas')
+         .select('*')
+         .is('is_public', true) // Only fetch public personas
+         .order('name', { ascending: true });
 
-    if (dbError) {
-      console.error('[API /api/personas] Supabase DB error fetching personas:', dbError);
-      return NextResponse.json({ error: 'Database error', details: dbError.message }, { status: 500 });
-    }
+       if (dbError) {
+         console.error('[API /api/personas] Supabase DB error fetching public personas:', dbError);
+         return NextResponse.json({ error: 'Database error', details: dbError.message }, { status: 500 });
+       }
 
-    console.log(`[API /api/personas] Successfully fetched ${data?.length || 0} personas for user ${user.id}.`);
-    return NextResponse.json({ personas: data || [] }); // Ensure data is an array, even if null
+       console.log(`[API /api/personas] Successfully fetched ${data?.length || 0} public personas.`);
+       return NextResponse.json({ personas: data || [] });
+     } else if (user) {
+       // User is authenticated, fetch their personas
+       console.log(`[API /api/personas] User ${user.id} found. Fetching personas...`);
+       const { data, error: dbError } = await supabase
+         .from('custom_personas')
+         .select('*')
+         .or(`user_id.eq.${user.id},is_public.eq.true`) // Get both the user's personas and public ones
+         .order('name', { ascending: true });
+
+       if (dbError) {
+         console.error('[API /api/personas] Supabase DB error fetching personas:', dbError);
+         return NextResponse.json({ error: 'Database error', details: dbError.message }, { status: 500 });
+       }
+
+       console.log(`[API /api/personas] Successfully fetched ${data?.length || 0} personas for user ${user.id} (includes public ones).`);
+       return NextResponse.json({ personas: data || [] }); // Ensure data is an array, even if null
+     } else {
+       // This should never happen due to the earlier check, but handle it just in case
+       return NextResponse.json({ error: 'Unauthorized', details: 'User session is missing' }, { status: 401 });
+     }
 
   } catch (error) {
     console.error('[API /api/personas] UNHANDLED EXCEPTION in GET handler:', error);
@@ -56,8 +85,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized', details: userError?.message || 'User not found' }, { status: 401 });
     }
 
-    const body = await request.json() as Omit<Persona, 'id' | 'created_at' | 'user_id'>;
-    const { name, style, constraints, voice_preference, backstory, tags } = body;
+    const body = await request.json() as Omit<Persona, 'id' | 'created_at' | 'user_id'> & { is_public?: boolean };
+    const { name, style, constraints, voice_preference, backstory, tags, is_public } = body;
 
     if (!name || typeof name !== 'string' || name.trim() === '') {
       return NextResponse.json({ error: 'Validation Error', details: 'Persona name is required.' }, { status: 400 });
@@ -74,7 +103,8 @@ export async function POST(request: Request) {
       voice_preference, 
       backstory: backstory?.trim(),
       tags: processedTags,
-      user_id: user.id // Associate with the logged-in user
+      user_id: user.id, // Associate with the logged-in user
+      is_public: !!is_public // Convert to boolean with default false
     };
     console.log('[API /api/personas POST] Attempting to insert persona:', JSON.stringify(personaToInsert, null, 2));
 

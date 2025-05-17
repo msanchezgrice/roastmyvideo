@@ -10,7 +10,9 @@
     "dev:worker": "dotenv -e .env.local -- tsx src/workers/videoWorker.ts",
     "prepare": "husky",
     "build:worker": "tsc --project tsconfig.json --listEmittedFiles && tsc-alias -p tsconfig.json",
-    "start:worker": "node -r dotenv/config dist/worker.js dotenv_config_path=.env.local"
+    "start:worker": "node -r dotenv/config dist/worker.js dotenv_config_path=.env.local",
+    "worker:dev": "cd cloudflare && npx wrangler dev",
+    "worker:deploy": "cd cloudflare && npx wrangler deploy"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.806.0",
@@ -46,7 +48,8 @@
     "tailwindcss": "^4",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.7.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.15.2"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "eslint --fix"

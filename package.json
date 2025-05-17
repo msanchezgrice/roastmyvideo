@@ -14,5 +14,10 @@
 		"build": "next build",
 		"start": "next start",
 		"dev:worker": "dotenv -e .env.local -- tsx src/workers/videoWorker.ts"
+	},
+	"devDependencies": {
+		"autoprefixer": "^10.4.21",
+		"postcss": "^8.5.3",
+		"tailwindcss": "^4.1.7"
 	}
 }

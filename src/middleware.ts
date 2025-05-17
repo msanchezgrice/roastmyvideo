@@ -16,9 +16,12 @@ export const config = {
      * - favicon.ico (favicon file)
      * - auth/ (auth routes themselves to avoid redirect loops)
      * - / (landing page, if you want it to be public)
+     * - /generator (public generator access)
+     * - /public-personas (public personas page)
+     * - /api/generate (public generation API)
      * Modify this pattern to protect specific routes or make others public.
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth/|api/auth/callback).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth/|api/auth/callback|generator|public-personas|api/generate).*)',
     // Ensure /api/auth/callback is excluded if it was not implicitly by 'auth/'
   ],
 }; 

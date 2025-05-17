@@ -67,6 +67,7 @@ export interface VideoJobData {
   userPersonas: Persona[];
   speakingPace: number;
   userGuidance?: string | null;
+  userId?: string | null; // User ID for authenticated users, null for anonymous
   // We might also add a historyEntryId if we create the history record before queuing
   // or pass all necessary data to create it upon successful completion.
 } 

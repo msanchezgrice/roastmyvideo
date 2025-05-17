@@ -4,12 +4,25 @@ import { v4 as uuidv4 } from 'uuid';
 import { Persona, VideoJobData } from '@/types';
 import { videoQueue } from '@/lib/queue'; // Import your BullMQ queue
 import { supabaseAdmin } from '@/lib/supabase/serviceRoleClient'; // Updated import path
+import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: Request) {
   const operationId = Date.now().toString(); // For initial request logging if needed
   let jobId: string | null = null;
+  let userId: string | null = null;
 
   try {
+    // Try to get user from session, but continue even if no user found
+    const supabase = createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (user) {
+      userId = user.id;
+      console.log(`[API /api/generate] Authenticated user: ${userId}`);
+    } else {
+      console.log(`[API /api/generate] Anonymous user request. ${userError ? 'Error: ' + userError.message : 'No error'}`);
+    }
+
     // Define an interface for the expected request body structure for clarity and type safety
     interface GenerateRequestBody {
       videoUrlInput?: string;
@@ -44,7 +57,8 @@ export async function POST(request: Request) {
       transcriptSummary: transcriptSummary || null,
       userPersonas: personas, // Already validated as Persona[] essentially
       speakingPace: speakingPace || 1.0,
-      userGuidance: userGuidance || null
+      userGuidance: userGuidance || null,
+      userId: userId // Add user ID if available
     };
 
     // Create initial history entry
@@ -59,7 +73,8 @@ export async function POST(request: Request) {
         user_guidance: userGuidance || null,
         speaking_pace: speakingPace || 1.0,
         status: 'queued',
-        created_at: new Date().toISOString() 
+        created_at: new Date().toISOString(),
+        user_id: userId // Store user ID in history if available
       };
       try {
         console.log(`[API /api/generate JOB ${jobId}] Attempting to create initial history entry with data:`, JSON.stringify(initialHistoryData, null, 2));

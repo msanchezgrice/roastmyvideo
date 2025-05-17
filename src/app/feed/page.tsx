@@ -132,7 +132,7 @@ export default function HistoryPage() {
                     </div>
                   )}
                   <Link 
-                    href={`/?videoUrl=${encodeURIComponent(entry.source_video_url || entry.video_r2_url || '')}&numSpeakers=${entry.num_speakers}&pace=${entry.speaking_pace}&summary=${encodeURIComponent(entry.transcript_summary || '')}&userGuidance=${encodeURIComponent(entry.user_guidance || '')}${entry.personas.map((p, i) => `&personaName${i}=${encodeURIComponent(p.name)}&personaStyle${i}=${encodeURIComponent(p.style || '')}&personaBackstory${i}=${encodeURIComponent(p.backstory || '')}&personaConstraints${i}=${encodeURIComponent(p.constraints || '')}`).join('')}`}
+                    href={`/generator?videoUrl=${encodeURIComponent(entry.source_video_url || entry.video_r2_url || '')}&numSpeakers=${entry.num_speakers}&pace=${entry.speaking_pace}&summary=${encodeURIComponent(entry.transcript_summary || '')}&userGuidance=${encodeURIComponent(entry.user_guidance || '')}${entry.personas.map((p, i) => `&personaName${i}=${encodeURIComponent(p.name)}&personaStyle${i}=${encodeURIComponent(p.style || '')}&personaBackstory${i}=${encodeURIComponent(p.backstory || '')}&personaConstraints${i}=${encodeURIComponent(p.constraints || '')}`).join('')}`}
                     className="mt-2 block w-full text-center px-4 py-2 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600 transition-colors duration-150 text-sm"
                     title="Remix this video with its settings"
                   >

@@ -1,10 +1,8 @@
-name = "doodad-video-processor"
-main = "video-worker.js"
-compatibility_date = "2024-05-08"
+name = "doodad-video-processor-v2"
+main = "worker.js"
+compatibility_date = "2024-05-17"
 
-# Enable FFmpeg
-[build]
-command = "npm install @ffmpeg/ffmpeg @ffmpeg/util"
+# Enable module format
 [build.upload]
 format = "modules"
 
@@ -16,10 +14,10 @@ crons = ["*/5 * * * *"]
 [vars]
 R2_BUCKET = "doodad-videos"
 
-# Bind to R2 for storage
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "doodad-videos"
+# Bind to R2 for storage (uncomment when setting up R2)
+# [[r2_buckets]]
+# binding = "R2"
+# bucket_name = "doodad-videos"
 
 # Secret environment variables (set these in the Cloudflare dashboard)
 # - R2_ENDPOINT_URL
@@ -31,4 +29,6 @@ bucket_name = "doodad-videos"
 SUPABASE_URL = ""  # Set in Cloudflare dashboard
 SUPABASE_SERVICE_KEY = ""  # Set in Cloudflare dashboard
 OPENAI_API_KEY = ""  # Set in Cloudflare dashboard
-API_SECRET = ""  # Secret for triggering manual processing 
+API_SECRET = ""  # Secret for triggering manual processing
+
+# Environment variables will be set in the dashboard 

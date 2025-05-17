@@ -4,6 +4,7 @@
   "description": "Cloudflare Worker for video processing",
   "main": "video-worker.js",
   "scripts": {
+    "dev": "wrangler dev",
     "deploy": "wrangler publish"
   },
   "dependencies": {
@@ -12,5 +13,6 @@
   },
   "devDependencies": {
     "wrangler": "^3.0.0"
-  }
+  },
+  "type": "module"
 } 

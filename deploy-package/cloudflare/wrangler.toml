@@ -1,0 +1,32 @@
+name = "doodad-video-processor"
+main = "video-worker.js"
+compatibility_date = "2024-05-08"
+
+# Enable FFmpeg
+[build]
+command = ""
+[build.upload]
+format = "modules"
+
+# Trigger the worker every 5 minutes to check for jobs
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Environment variables
+[vars]
+R2_BUCKET = "doodad-videos"
+
+# Bind to R2 for storage
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "doodad-videos"
+
+# Configure environment variables and bindings
+[vars]
+SUPABASE_URL = ""  # Set in Cloudflare dashboard
+SUPABASE_SERVICE_KEY = ""  # Set in Cloudflare dashboard
+OPENAI_API_KEY = ""  # Set in Cloudflare dashboard
+R2_ENDPOINT_URL = ""  # Set in Cloudflare dashboard
+R2_ACCESS_KEY_ID = ""  # Set in Cloudflare dashboard
+R2_SECRET_ACCESS_KEY = ""  # Set in Cloudflare dashboard
+API_SECRET = ""  # Secret for triggering manual processing 

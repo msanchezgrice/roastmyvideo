@@ -5,22 +5,42 @@ import { uploadToR2 } from './r2';
 const CLOUDFLARE_WORKER_URL = process.env.CLOUDFLARE_WORKER_URL || 'https://doodad-video-processor-v2.doodad.workers.dev';
 
 /**
- * Serverless video processing that overlays audio onto video using a cloud service.
- * For Vercel's environment we can't run ffmpeg directly, so we use a Cloudflare Worker.
+ * Serverless Video Processor for Doodad.AI
+ * Uses Cloudflare Worker for processing video + audio
+ */
+
+interface VideoProcessingResult {
+  success: boolean;
+  audioUrl?: string;
+  videoUrl?: string;
+  processedVideoUrl?: string;
+  statusMessage?: string;
+  error?: string;
+}
+
+/**
+ * Processes a video by overlaying the provided audio
+ * This function calls our Cloudflare Worker that handles ffmpeg processing
  */
 export async function processVideoWithAudio(
   videoUrl: string,
-  audioUrl: string,
-): Promise<{ success: boolean; videoUrl?: string; audioUrl: string; processedVideoUrl?: string; statusMessage: string }> {
-  const jobId = uuidv4().substring(0, 8);
-  console.log(`[ServerlessVideoProcessor JOB ${jobId}] Starting processing with video: ${videoUrl}`);
-  console.log(`[ServerlessVideoProcessor JOB ${jobId}] Audio URL: ${audioUrl}`);
+  audioUrl: string
+): Promise<VideoProcessingResult> {
+  // Environment check
+  const workerEndpoint = process.env.VIDEO_WORKER_ENDPOINT || 'https://doodad-video-worker.doodadai.workers.dev';
+  console.log(`[ServerlessVideoProcessor] Using worker endpoint: ${workerEndpoint}`);
+  
+  if (!videoUrl || !audioUrl) {
+    return {
+      success: false,
+      statusMessage: "Missing video or audio URL",
+      error: "Required parameters not provided"
+    };
+  }
   
   try {
-    // First, call the Cloudflare Worker to process the video
-    console.log(`[ServerlessVideoProcessor JOB ${jobId}] Calling Cloudflare Worker at: ${CLOUDFLARE_WORKER_URL}/process-video`);
-    
-    const response = await fetch(`${CLOUDFLARE_WORKER_URL}/process-video`, {
+    // Call the Cloudflare Worker to process the video
+    const response = await fetch(`${workerEndpoint}/process-video`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,47 +52,52 @@ export async function processVideoWithAudio(
     });
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      console.error(`[ServerlessVideoProcessor JOB ${jobId}] Worker error:`, errorData);
+      console.error(`[ServerlessVideoProcessor] Worker response error: ${response.status} ${response.statusText}`);
+      let errorMessage = "Video processing failed";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch (e) {
+        // If parsing JSON fails, use the default error message
+      }
       
-      // Return the audio URL at least
       return {
         success: false,
-        videoUrl,
         audioUrl,
-        statusMessage: `Worker processing failed: ${errorData.error || 'Unknown error'}. Using separate video and audio.`
+        videoUrl,
+        statusMessage: `Error processing video: ${errorMessage}`,
+        error: errorMessage
       };
     }
     
-    const data = await response.json();
+    const result = await response.json();
+    console.log(`[ServerlessVideoProcessor] Worker response:`, result);
     
-    if (data.success && data.videoUrl) {
-      console.log(`[ServerlessVideoProcessor JOB ${jobId}] Worker successfully processed video: ${data.videoUrl}`);
-      
+    if (result.success && result.videoUrl) {
       return {
         success: true,
-        videoUrl,
         audioUrl,
-        processedVideoUrl: data.videoUrl,
-        statusMessage: 'Video processing successful! The video and audio have been merged.'
+        videoUrl,
+        processedVideoUrl: result.videoUrl,
+        statusMessage: result.message || "Video processed successfully"
       };
     } else {
-      console.error(`[ServerlessVideoProcessor JOB ${jobId}] Worker returned success:false:`, data);
-      
       return {
         success: false,
-        videoUrl,
         audioUrl,
-        statusMessage: `Worker processing failed: ${data.error || 'Unknown error'}. Using separate video and audio.`
+        videoUrl,
+        statusMessage: result.message || "Processing didn't return a video URL",
+        error: result.error || "Unknown processing error"
       };
     }
   } catch (error) {
-    console.error(`[ServerlessVideoProcessor JOB ${jobId}] Error:`, error);
+    console.error('[ServerlessVideoProcessor] Error:', error);
     return {
       success: false,
-      videoUrl,
       audioUrl,
-      statusMessage: `Error processing video: ${error instanceof Error ? error.message : String(error)}`
+      videoUrl,
+      statusMessage: `Failed to process video: ${error instanceof Error ? error.message : String(error)}`,
+      error: error instanceof Error ? error.message : String(error)
     };
   }
 }

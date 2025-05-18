@@ -1,6 +1,7 @@
-// another force commit after pull
-// force commit
-import React, { useState } from "react";
+'use client';
+
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 
 export default function GeneratorPage() {

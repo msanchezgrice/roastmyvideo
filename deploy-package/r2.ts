@@ -7,7 +7,7 @@ export async function uploadToR2(
   fileBuffer: Buffer, 
   fileName: string, 
   contentType: string
-): Promise<string> {
+): Promise<{ url: string, signedUrl?: string }> {
   // Check for required environment variables
   const bucketName = process.env.R2_BUCKET_NAME || 'doodad-videos';
   const r2AccountId = process.env.R2_ACCOUNT_ID;
@@ -45,7 +45,11 @@ export async function uploadToR2(
     console.log(`Successfully uploaded to R2: ${keyPath}`, response);
     
     // Return the public URL
-    return `${publicUrl}/${keyPath}`;
+    return {
+      url: `${publicUrl}/${keyPath}`,
+      // Add signedUrl if needed
+      signedUrl: `${publicUrl}/${keyPath}?t=${Date.now()}`
+    };
   } catch (err) {
     console.error('Error uploading to R2:', err);
     throw err;

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       console.error('[Auth Callback] PKCE: Error exchanging code for session:', error);
-      redirectTo = `${requestUrl.origin}/auth/auth-code-error?message=${encodeURIComponent(error.message)}`);
+      redirectTo = `${requestUrl.origin}/auth/auth-code-error?message=${encodeURIComponent(error.message)}`;
     } else {
       console.log('[Auth Callback] PKCE: Session exchanged successfully.');
     }
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash, }); // Removed email for broader OTP types
     if (error) {
       console.error('[Auth Callback] OTP: Error verifying OTP:', error);
-      redirectTo = `${requestUrl.origin}/auth/auth-code-error?message=${encodeURIComponent(error.message)}`);
+      redirectTo = `${requestUrl.origin}/auth/auth-code-error?message=${encodeURIComponent(error.message)}`;
     } else {
       console.log('[Auth Callback] OTP: Verified successfully.');
     }

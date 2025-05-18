@@ -4,10 +4,16 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import Link from "next/link";
 
+// Define interface for result state
+interface GeneratorResult {
+  summary: string;
+  // Add other properties as needed
+}
+
 export default function GeneratorPage() {
   const [videoUrl, setVideoUrl] = useState("");
   const [character, setCharacter] = useState("");
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState<GeneratorResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {

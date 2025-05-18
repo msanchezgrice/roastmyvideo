@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { type EmailOtpType } from '@supabase/supabase-js';
+// Removed specific EmailOtpType import as it may not be directly exported
+// We will use string literals for OTP types
 
 export const dynamic = 'force-dynamic';
 
@@ -8,7 +9,8 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
   const token_hash = requestUrl.searchParams.get('token_hash');
-  const type = requestUrl.searchParams.get('type') as EmailOtpType | null;
+  // Use a more general string type for 'type' and validate it if necessary
+  const type = requestUrl.searchParams.get('type') as "email" | "sms" | "phone_change" | "email_change" | "magiclink" | "recovery" | "invite" | "signup" | null;
   const next = requestUrl.searchParams.get('next') || '/';
   const supabase = createClient();
 
@@ -24,13 +26,20 @@ export async function GET(request: NextRequest) {
       console.log('[Auth Callback] PKCE: Session exchanged successfully.');
     }
   } else if (token_hash && type) { // Handle OTP/Magic Link/Email Confirmation flow
-    console.log('[Auth Callback] Detected OTP/token_hash flow (e.g., email confirmation). Type:', type);
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash, }); // Removed email for broader OTP types
-    if (error) {
-      console.error('[Auth Callback] OTP: Error verifying OTP:', error);
-      redirectTo = `${requestUrl.origin}/auth/auth-code-error?message=${encodeURIComponent(error.message)}`;
+    console.log('[Auth Callback] Detected OTP/token_hash flow. Type:', type);
+    // Ensure the type is one of the known OtpTypes before calling verifyOtp
+    const validOtpTypes = ["email", "sms", "phone_change", "email_change", "magiclink", "recovery", "invite", "signup"];
+    if (validOtpTypes.includes(type)) {
+      const { error } = await supabase.auth.verifyOtp({ type: type as any, token_hash }); // Cast to any if specific OtpType is not available
+      if (error) {
+        console.error('[Auth Callback] OTP: Error verifying OTP:', error);
+        redirectTo = `${requestUrl.origin}/auth/auth-code-error?message=${encodeURIComponent(error.message)}`;
+      } else {
+        console.log('[Auth Callback] OTP: Verified successfully.');
+      }
     } else {
-      console.log('[Auth Callback] OTP: Verified successfully.');
+      console.error('[Auth Callback] OTP: Invalid OTP type received:', type);
+      redirectTo = `${requestUrl.origin}/auth/auth-code-error?message=Invalid%20OTP%20type`;
     }
   } else {
     console.warn('[Auth Callback] No code or token_hash/type found in query params.');

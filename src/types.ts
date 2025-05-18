@@ -22,6 +22,19 @@ export interface DialogueLine {
   timestamp?: number; // Optional timestamp in seconds
 }
 
+// Job data for video processing queue
+export interface VideoJobData {
+  id: string;
+  userId?: string;
+  videoUrl: string;
+  personas: Persona[];
+  speakingPace?: number;
+  jobId: string;
+  transcriptSummary?: string;
+  userGuidance?: string;
+  callbackUrl?: string;
+}
+
 // A user's history entry for a generated video
 export interface HistoryEntry {
   id: string;

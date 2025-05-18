@@ -58,10 +58,12 @@ export default {
  * Helper function to create JSON responses
  */
 function jsonResponse(data, status = 200) {
-  return new Response(JSON.stringify(data), {
+  const jsonString = JSON.stringify(data);
+  
+  return new Response(jsonString, {
     status,
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=utf-8',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type'

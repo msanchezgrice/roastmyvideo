@@ -24,14 +24,21 @@ export interface DialogueLine {
 
 // Job data for video processing queue
 export interface VideoJobData {
-  id: string;
-  userId?: string;
-  videoUrl: string;
-  personas: Persona[];
-  speakingPace?: number;
+  // Required fields from the generate/route.ts usage
   jobId: string;
-  transcriptSummary?: string;
-  userGuidance?: string;
+  videoUrlInput: string;
+  userPersonas: Persona[];
+  
+  // Optional fields
+  transcriptSummary?: string | null;
+  userGuidance?: string | null;
+  speakingPace?: number;
+  userId?: string | null;
+  
+  // Other fields that might be used elsewhere
+  id?: string;
+  videoUrl?: string;
+  personas?: Persona[];
   callbackUrl?: string;
 }
 

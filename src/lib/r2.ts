@@ -4,45 +4,54 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 // Initialize R2 client using AWS SDK (compatible with R2)
 let r2Client: S3Client | null = null;
 
-try {
-  console.log('[R2] Initializing R2 client');
-  console.log('[R2] R2_ENDPOINT_URL:', process.env.R2_ENDPOINT_URL?.substring(0, 20) || 'not set');
-  console.log('[R2] R2_ACCESS_KEY_ID available:', !!process.env.R2_ACCESS_KEY_ID);
-  console.log('[R2] R2_SECRET_ACCESS_KEY available:', !!process.env.R2_SECRET_ACCESS_KEY);
-  console.log('[R2] R2_BUCKET_NAME:', process.env.R2_BUCKET_NAME || 'doodad-videos');
-  console.log('[R2] R2_PUBLIC_URL_BASE:', process.env.R2_PUBLIC_URL_BASE || 'not set');
+// Initialize the client
+async function initializeR2Client() {
+  try {
+    console.log('[R2] Initializing R2 client');
+    console.log('[R2] R2_ENDPOINT_URL:', process.env.R2_ENDPOINT_URL?.substring(0, 20) || 'not set');
+    console.log('[R2] R2_ACCESS_KEY_ID available:', !!process.env.R2_ACCESS_KEY_ID);
+    console.log('[R2] R2_SECRET_ACCESS_KEY available:', !!process.env.R2_SECRET_ACCESS_KEY);
+    console.log('[R2] R2_BUCKET_NAME:', process.env.R2_BUCKET_NAME || 'doodad-videos');
+    console.log('[R2] R2_PUBLIC_URL_BASE:', process.env.R2_PUBLIC_URL_BASE || 'not set');
 
-  if (!process.env.R2_ENDPOINT_URL || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
-    console.error('[R2] Missing required R2 configuration');
-    r2Client = null;
-  } else {
-    r2Client = new S3Client({
-      region: 'auto',
-      endpoint: process.env.R2_ENDPOINT_URL,
-      credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-      },
-    });
-    console.log('[R2] R2 client initialized successfully');
-    
-    // Try to verify connection by listing buckets
-    try {
-      console.log('[R2] Attempting to verify connection by listing buckets...');
-      const command = new ListBucketsCommand({});
-      const response = await r2Client.send(command);
-      console.log('[R2] Connection verified! Available buckets:', 
-        response.Buckets?.map(b => b.Name).join(', ') || 'None');
-    } catch (verifyError) {
-      console.error('[R2] Failed to verify R2 connection:', verifyError);
-      // We don't set r2Client to null here since the issue might be permissions
-      // and not connectivity
+    if (!process.env.R2_ENDPOINT_URL || !process.env.R2_ACCESS_KEY_ID || !process.env.R2_SECRET_ACCESS_KEY) {
+      console.error('[R2] Missing required R2 configuration');
+      r2Client = null;
+    } else {
+      r2Client = new S3Client({
+        region: 'auto',
+        endpoint: process.env.R2_ENDPOINT_URL,
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
+        },
+      });
+      console.log('[R2] R2 client initialized successfully');
+      
+      // Try to verify connection by listing buckets
+      try {
+        console.log('[R2] Attempting to verify connection by listing buckets...');
+        const command = new ListBucketsCommand({});
+        const response = await r2Client.send(command);
+        console.log('[R2] Connection verified! Available buckets:', 
+          response.Buckets?.map(b => b.Name).join(', ') || 'None');
+      } catch (verifyError) {
+        console.error('[R2] Failed to verify R2 connection:', verifyError);
+        // We don't set r2Client to null here since the issue might be permissions
+        // and not connectivity
+      }
     }
+  } catch (error) {
+    console.error('[R2] Error initializing R2 client:', error);
+    r2Client = null;
   }
-} catch (error) {
-  console.error('[R2] Error initializing R2 client:', error);
-  r2Client = null;
 }
+
+// Call the initialization function but don't wait for it to complete
+// This allows the module to be imported without blocking
+initializeR2Client().catch(err => {
+  console.error('[R2] Failed to initialize R2 client:', err);
+});
 
 const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'doodad-videos';
 const PUBLIC_URL_BASE = process.env.R2_PUBLIC_URL_BASE || '';
